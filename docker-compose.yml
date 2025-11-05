@@ -1,0 +1,65 @@
+version: "3.8"
+
+services:
+  # PostgreSQL Database
+  database:
+    image: postgres:16-alpine
+    container_name: coffeeshop-db
+    environment:
+      POSTGRES_DB: CoffeeShop
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: P@ssword@2024
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./CoffeeShopBk1125.sql:/backup/CoffeeShopBk1125.sql
+      - ./restore-db.sh:/docker-entrypoint-initdb.d/restore-db.sh
+    networks:
+      - coffeeshop-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ./publish
+      dockerfile: Dockerfile
+    container_name: coffeeshop-backend
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__ConnectionDb=Host=database:5432;Database=CoffeeShop;Username=postgres;Password=P@ssword@2024
+      - CORS__AllowedOrigins=http://www.devopp.edu.vn
+    ports:
+      - "5000:80"
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - coffeeshop-network
+    restart: unless-stopped
+
+  # Frontend
+  frontend:
+    build:
+      context: ./build
+      dockerfile: Dockerfile
+    container_name: coffeeshop-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - coffeeshop-network
+    restart: unless-stopped
+
+networks:
+  coffeeshop-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

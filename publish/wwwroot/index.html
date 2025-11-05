@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SignalR Test</title>
+</head>
+<body>
+    <h1>SignalR Connection Test</h1>
+    <button id="sendBtn">Send Message</button>
+    <button id="stopBtn">Stop Connection</button>
+    <input type="text" id="textMsg" />
+    <div id="message" style="width:500px; height:500px; border:2px solid black">
+
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script>
+        // JWT Token (from your login system)
+        const token = "your_jwt_token_here";
+
+        // Create connection
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("https://localhost:7164/notificationHub")
+            .configureLogging(signalR.LogLevel.Information)
+            .build();
+
+        // Start connection
+        connection.start()
+            .then(() => {
+                console.log("Connected to SignalR Hub!");
+            })
+            .catch(err => console.error("Connection failed:", err));
+
+        // Receive message
+        connection.on("ReceivedMessage", (message) => {
+            console.log("User A:" + message);
+            var myDiv = document.getElementById("message");
+            myDiv.innerHTML = myDiv.innerHTML + "<br />" + message;
+        });
+        // Send message example
+        document.getElementById("sendBtn").addEventListener("click", () => {
+            var myText = document.getElementById("textMsg").value;
+            connection.invoke("SendMessage", myText)
+                .catch(err => console.error("Send failed:", err));
+        });
+        document.getElementById("stopBtn").addEventListener("click", () => {
+            connection.stop()
+                .then(() => console.log("Connection to SignalR stoped"));
+        });
+    </script>
+</body>
+</html>
