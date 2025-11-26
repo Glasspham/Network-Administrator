@@ -1,0 +1,13 @@
+version: "3.8"
+
+services:
+  mymvcapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mymvcapp-container
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    restart: unless-stopped
