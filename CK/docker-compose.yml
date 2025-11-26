@@ -1,0 +1,59 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: networkadmin-postgres
+    environment:
+      POSTGRES_DB: EventManagement
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: P@ssword@2024
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./TestDb.backup:/docker-entrypoint-initdb.d/TestDb.backup
+    networks:
+      - networkadmin-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  webapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: networkadmin-webapp
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__EventConnectedDb=Host=postgres;Database=EventManagement;Username=postgres;Password=P@ssword@2024
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - networkadmin-network
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: networkadmin-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./build:/usr/share/nginx/html:ro
+    depends_on:
+      - webapp
+    networks:
+      - networkadmin-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  networkadmin-network:
+    driver: bridge
