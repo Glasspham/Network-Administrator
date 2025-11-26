@@ -1,0 +1,13 @@
+# Ignore common things that shouldn't go into the image
+node_modules
+.git
+.gitignore
+Dockerfile
+docker-compose.yml
+README.md
+*.md
+*.log
+.vscode
+*.env
+npm-debug.log
+yarn-error.log

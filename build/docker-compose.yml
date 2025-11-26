@@ -1,0 +1,9 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80" # maps host 8080 -> container 80
+    restart: unless-stopped
+    container_name: my-static-site

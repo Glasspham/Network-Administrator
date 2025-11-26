@@ -1,0 +1,6 @@
+<script src="%PUBLIC_URL%/runtime-config.js"></script>
+<div id="root"></div>
+Step 3: Create a new file config.ts in src folder:
+export const API_BASE_URL =
+(window as any).__RUNTIME_CONFIG__?.API_BASE_URL ??
+"http://localhost:3000";
